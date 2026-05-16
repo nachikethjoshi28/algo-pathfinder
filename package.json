@@ -1,0 +1,23 @@
+{
+  "name": "shortest-path-visualizer",
+  "version": "1.0.0",
+  "description": "Pathfinding algorithm visualizer",
+  "main": "script.js",
+  "type": "module",
+  "scripts": {
+    "start": "http-server -p 8080 -o",
+    "dev": "http-server -p 8080 -c-1"
+  },
+  "keywords": [
+    "pathfinding",
+    "bfs",
+    "dijkstra",
+    "astar",
+    "algorithms"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

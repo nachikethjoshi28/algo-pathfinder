@@ -1,0 +1,332 @@
+/* ---- Algorithm Buttons ---- */
+.algo-btn {
+  padding: 0.35rem 0.4rem;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: white;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.algo-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.algo-btn:active { transform: translateY(0); }
+
+.ctrl-btn {
+  width: 100%;
+  padding: 0.35rem 0.4rem;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: white;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.ctrl-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.ctrl-btn:active { transform: translateY(0); }
+
+.algo-btn-dfs {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  border-color: #4338ca;
+}
+.algo-btn-dfs:hover { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); }
+
+.algo-btn-bfs {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-color: #1d4ed8;
+}
+.algo-btn-bfs:hover { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
+
+.algo-btn-dijkstra {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border-color: #15803d;
+}
+.algo-btn-dijkstra:hover { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
+
+.algo-btn-astar {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: #b45309;
+}
+.algo-btn-astar:hover { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+
+.algo-btn-greedy {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  border-color: #be185d;
+}
+.algo-btn-greedy:hover { background: linear-gradient(135deg, #db2777 0%, #be185d 100%); }
+
+.algo-btn-dstar {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  border-color: #0f766e;
+}
+.algo-btn-dstar:hover { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); }
+
+.algo-btn-jps {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  border-color: #c2410c;
+}
+.algo-btn-jps:hover { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); }
+
+.algo-btn-bibfs {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border-color: #0e7490;
+}
+.algo-btn-bibfs:hover { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); }
+
+.algo-btn-biastar {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  border-color: #6d28d9;
+}
+.algo-btn-biastar:hover { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); }
+
+.algo-btn-all {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-color: #b91c1c;
+}
+.algo-btn-all:hover { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
+
+/* ---- Grid Container ---- */
+#gridContainer {
+  position: relative; /* for character animation overlay */
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #0f172a;
+}
+
+/* ---- Grid ---- */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(40, 22px);
+  grid-template-rows: repeat(24, 22px);
+  gap: 1px;
+  width: max-content;
+}
+
+.cell {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #475569;
+  border-radius: 2px;
+  background-color: #334155;
+  cursor: pointer;
+  transition: background-color 0.08s ease;
+}
+
+.cell:hover { border-color: #94a3b8; }
+
+.cell.start {
+  background-color: #facc15; box-shadow: 0 0 8px rgba(250,204,21,0.6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; line-height: 1;
+}
+.cell.end {
+  background-color: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; line-height: 1;
+}
+.cell.wall  { background-color: #0f172a; border-color: #1e293b; }
+
+/* Visited */
+.cell.visited-dfs      { background: #4109e8; }
+.cell.visited-bfs      { background: #1fa5e2; }
+.cell.visited-dijkstra { background: #048433; }
+.cell.visited-astar    { background: #d1e708; }
+.cell.visited-greedy   { background: #f472b6; }
+.cell.visited-dstar    { background: #024e44; }
+.cell.visited-bidir    { background: #e9b6b6; }
+.cell.visited-bidir-astar { background: #3e6db8; }
+.cell.visited-jps         { background: #a82927; }
+
+/* Path */
+.cell.path-dfs      { background: #6366f1; }
+.cell.path-bfs      { background: #1066ef; }
+.cell.path-dijkstra { background: #6ce799; }
+.cell.path-astar    { background: #f59e0b; }
+.cell.path-greedy   { background: #ec4899; }
+.cell.path-dstar    { background: #14b8a6; }
+.cell.path-bidir    { background: #06b6d4; }
+.cell.path-bidir-astar { background: #8b5cf6; }
+.cell.path-jps         { background: #f97316; }
+
+/* ---- Vertical Legend ---- */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #cbd5e1;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-sep {
+  height: 1px;
+  background: #475569;
+}
+
+/* ---- No-path Toast ---- */
+.no-path-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(6rem);
+  background: #dc2626;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: 0.6rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.no-path-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---- Stats Slide-in Panel ---- */
+.stats-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.stats-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.stats-panel {
+  position: relative;
+  width: 480px;
+  background: #1e293b;
+  border-left: 1px solid #334155;
+  box-shadow: -8px 0 32px rgba(0,0,0,0.5);
+  padding: 1.25rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Graph Container ---- */
+#graphContainer {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #0f172a;
+}
+
+.graph-node circle {
+  transition: fill 0.12s ease, stroke 0.12s ease, r 0.12s ease;
+}
+
+.graph-node:hover circle {
+  stroke: #94a3b8;
+  stroke-width: 2.5px;
+  filter: brightness(1.15);
+}
+
+/* ---- Bidirectional Toggle Switch ---- */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #475569;
+  border-radius: 20px;
+  transition: background-color 0.25s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.25s;
+}
+
+.toggle-switch input:checked + .toggle-slider { background-color: #06b6d4; }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+/* ---- Algorithm Explanation Panel ---- */
+.algo-explanation {
+  max-height: 420px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #1e293b;
+  padding-right: 2px;
+}
+.algo-explanation h4 {
+  color: #67e8f9;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-top: 14px;
+  margin-bottom: 5px;
+}
+.algo-explanation h4:first-child { margin-top: 0; }
+.algo-explanation p {
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.7;
+  margin-bottom: 6px;
+}
+.algo-complexity {
+  display: inline-block;
+  background: #0f172a;
+  color: #34d399;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 5px;
+  border: 1px solid #064e3b;
+  margin-top: 2px;
+}
