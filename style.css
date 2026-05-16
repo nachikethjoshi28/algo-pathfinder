@@ -244,6 +244,10 @@
   scrollbar-color: #334155 #0f172a;
 }
 
+.graph-node {
+  cursor: grab;
+}
+
 .graph-node circle {
   transition: fill 0.12s ease, stroke 0.12s ease, r 0.12s ease;
 }
@@ -252,6 +256,12 @@
   stroke: #94a3b8;
   stroke-width: 2.5px;
   filter: brightness(1.15);
+}
+
+#graphSvg {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 /* ---- Bidirectional Toggle Switch ---- */

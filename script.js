@@ -67,6 +67,19 @@ let graphEdgeMap = null;  // Map<"minId-maxId", SVGLineElement>
 // Shared start/end: string ID in grid mode, number in graph mode
 let start = null, end = null;
 
+// Graph walls: blocked node IDs + original edge list for rebuilding
+let graphWallSet      = new Set();
+let graphOriginalEdges = [];
+
+// Graph drag state
+let dragNodeId    = null;
+let dragLongTimer = null;
+let dragActive    = false;
+let suppressClick = false;
+
+const LONG_PRESS_MS = 450;
+const GRAPH_W = 860, GRAPH_H = 540, DRAG_PAD = 18;
+
 let perfChart = null;
 
 const ALGO_COLORS = {
@@ -114,7 +127,7 @@ function buildGridMode() {
   }
 
   rebuildGridGraph();
-  randomBtn.textContent = 'Random Walls';
+  updateRandomBtn();
 }
 
 function handleCellClick(id) {
@@ -185,6 +198,44 @@ function randomWalls() {
   rebuildGridGraph();
 }
 
+function rebuildGraphGraph() {
+  for (const [id] of graphNodeMap) graphGraph.set(id, []);
+  for (const e of graphOriginalEdges) {
+    if (graphWallSet.has(e.from) || graphWallSet.has(e.to)) continue;
+    graphGraph.get(e.from).push({ id: e.to,   distance: e.d });
+    graphGraph.get(e.to).push(  { id: e.from, distance: e.d });
+  }
+}
+
+function randomGraphWalls() {
+  graphWallSet.forEach(id => setGraphNodeStyle(id, 'default'));
+  graphWallSet.clear();
+  for (const [id] of graphNodeMap) {
+    if (id === start || id === end) continue;
+    if (Math.random() < 0.2) {
+      graphWallSet.add(id);
+      setGraphNodeStyle(id, 'wall');
+    }
+  }
+  rebuildGraphGraph();
+  // Dim edges connected to wall nodes
+  graphEdgeMap?.forEach((line, key) => {
+    const [a, b] = key.split('-').map(Number);
+    const isWall = graphWallSet.has(a) || graphWallSet.has(b);
+    line.setAttribute('stroke',       isWall ? '#1e293b' : '#334155');
+    line.setAttribute('stroke-width', isWall ? '1'       : '1.5');
+    line.setAttribute('opacity',      isWall ? '0.15'    : '0.7');
+  });
+}
+
+function updateRandomBtn() {
+  if (isGridMode) {
+    randomBtn.textContent = 'Random Walls';
+  } else {
+    randomBtn.textContent = (start && end) ? 'Random Walls' : 'Random Graph';
+  }
+}
+
 function clearGridVisualization() {
   gridNodeMap.forEach(node => {
     node.el.className = 'cell';
@@ -201,7 +252,7 @@ async function gridVisualize(visited, path, algoName) {
   for (const nodeId of visited) {
     if (nodeId === start || nodeId === end) continue;
     const node = gridNodeMap.get(nodeId);
-    if (node) { node.el.classList.add(`visited-${type}`); await sleep(5); }
+    if (node) { node.el.classList.add(`visited-${type}`); await sleep(40); }
   }
 
   for (const nodeId of path) {
@@ -210,7 +261,7 @@ async function gridVisualize(visited, path, algoName) {
     if (node) {
       node.el.classList.remove(`visited-${type}`);
       node.el.classList.add(`path-${type}`);
-      await sleep(10);
+      await sleep(80);
     }
   }
 }
@@ -233,11 +284,12 @@ function buildGraphMode() {
   isGridMode  = false;
   isGraphMode = true;
   start = end = null;
+  graphWallSet = new Set();
 
   gridContainer.style.display  = 'none';
   graphContainer.style.display = 'flex';
 
-  randomBtn.textContent = 'Random Graph';
+  updateRandomBtn();
   generateRandomGraph();
 }
 
@@ -320,31 +372,100 @@ function generateRandomGraph() {
     }
   }
 
+  graphWallSet        = new Set();
+  graphOriginalEdges  = edgeList;
+  updateRandomBtn();
   renderGraphSvg(nodes, edgeList);
+}
+
+// ---- Drag helpers ----
+
+function svgPoint(clientX, clientY) {
+  const rect = graphSvgEl.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left) * (GRAPH_W / rect.width),
+    y: (clientY - rect.top)  * (GRAPH_H / rect.height),
+  };
+}
+
+function moveNode(nodeId, rawX, rawY) {
+  const x = Math.max(DRAG_PAD, Math.min(GRAPH_W - DRAG_PAD, rawX));
+  const y = Math.max(DRAG_PAD, Math.min(GRAPH_H - DRAG_PAD, rawY));
+  const node = graphNodeMap.get(nodeId);
+  if (!node) return;
+  node.x = x;
+  node.y = y;
+  node.circleEl.setAttribute('cx', x.toFixed(1));
+  node.circleEl.setAttribute('cy', y.toFixed(1));
+  node.textEl.setAttribute('x',   x.toFixed(1));
+  node.textEl.setAttribute('y',   y.toFixed(1));
+  // Update every edge endpoint that belongs to this node.
+  // Key is always "minId-maxId", x1/y1 = minId node, x2/y2 = maxId node.
+  graphEdgeMap?.forEach((line, key) => {
+    const [a, b] = key.split('-').map(Number);
+    if      (a === nodeId) { line.setAttribute('x1', x.toFixed(1)); line.setAttribute('y1', y.toFixed(1)); }
+    else if (b === nodeId) { line.setAttribute('x2', x.toFixed(1)); line.setAttribute('y2', y.toFixed(1)); }
+  });
+}
+
+function finalizeNodeDrag(nodeId) {
+  const node = graphNodeMap.get(nodeId);
+  if (!node) return;
+  if (node.circleEl) node.circleEl.setAttribute('r', '14');
+  // Recompute euclidean distances for all edges touching this node
+  for (const e of graphOriginalEdges) {
+    if (e.from !== nodeId && e.to !== nodeId) continue;
+    const fn = graphNodeMap.get(e.from);
+    const tn = graphNodeMap.get(e.to);
+    if (fn && tn) e.d = Math.sqrt((fn.x - tn.x) ** 2 + (fn.y - tn.y) ** 2);
+  }
+  rebuildGraphGraph();
+}
+
+function cancelDrag() {
+  clearTimeout(dragLongTimer);
+  dragLongTimer = null;
+  dragActive    = false;
+  dragNodeId    = null;
+  graphSvgEl.style.cursor = '';
+}
+
+function startNodeLongPress(nodeId) {
+  cancelDrag();
+  dragNodeId    = nodeId;
+  dragLongTimer = setTimeout(() => {
+    dragActive = true;
+    graphSvgEl.style.cursor = 'grabbing';
+    const node = graphNodeMap.get(nodeId);
+    if (node?.circleEl) node.circleEl.setAttribute('r', '17');
+  }, LONG_PRESS_MS);
 }
 
 function renderGraphSvg(nodes, edgeList) {
   const NS     = 'http://www.w3.org/2000/svg';
   const NODE_R = 14;
+  cancelDrag();
   graphSvgEl.innerHTML = '';
   graphEdgeMap = new Map();
 
-  // Edges (drawn first so nodes appear on top)
+  // Edges — key is always "minId-maxId"; x1/y1 = minId node so moveNode can update reliably
   const edgeGroup = document.createElementNS(NS, 'g');
   for (const e of edgeList) {
-    const from = graphNodeMap.get(e.from);
-    const to   = graphNodeMap.get(e.to);
-    const line = document.createElementNS(NS, 'line');
-    line.setAttribute('x1', from.x.toFixed(1));
-    line.setAttribute('y1', from.y.toFixed(1));
-    line.setAttribute('x2', to.x.toFixed(1));
-    line.setAttribute('y2', to.y.toFixed(1));
-    line.setAttribute('stroke',        '#334155');
-    line.setAttribute('stroke-width',  '1.5');
-    line.setAttribute('opacity',       '0.7');
+    const minId   = Math.min(e.from, e.to);
+    const maxId   = Math.max(e.from, e.to);
+    const minNode = graphNodeMap.get(minId);
+    const maxNode = graphNodeMap.get(maxId);
+    const line    = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', minNode.x.toFixed(1));
+    line.setAttribute('y1', minNode.y.toFixed(1));
+    line.setAttribute('x2', maxNode.x.toFixed(1));
+    line.setAttribute('y2', maxNode.y.toFixed(1));
+    line.setAttribute('stroke',       '#334155');
+    line.setAttribute('stroke-width', '1.5');
+    line.setAttribute('opacity',      '0.7');
     edgeGroup.appendChild(line);
 
-    const key = `${Math.min(e.from, e.to)}-${Math.max(e.from, e.to)}`;
+    const key = `${minId}-${maxId}`;
     graphEdgeMap.set(key, line);
   }
   graphSvgEl.appendChild(edgeGroup);
@@ -354,8 +475,13 @@ function renderGraphSvg(nodes, edgeList) {
   for (const [id, node] of graphNodeMap) {
     const g = document.createElementNS(NS, 'g');
     g.classList.add('graph-node');
-    g.style.cursor = 'pointer';
-    g.addEventListener('click', () => handleGraphNodeClick(id));
+    g.style.cursor = 'grab';
+    g.addEventListener('click', (e) => {
+      if (suppressClick) { suppressClick = false; return; }
+      handleGraphNodeClick(id);
+    });
+    g.addEventListener('mousedown',  (e) => { e.stopPropagation(); startNodeLongPress(id); });
+    g.addEventListener('touchstart', (e) => { e.stopPropagation(); startNodeLongPress(id); }, { passive: true });
 
     const circle = document.createElementNS(NS, 'circle');
     circle.setAttribute('cx',           node.x.toFixed(1));
@@ -391,9 +517,30 @@ function handleGraphNodeClick(id) {
   if (!start) {
     start = id;
     setGraphNodeStyle(id, 'start');
+    updateRandomBtn();
   } else if (!end && id !== start) {
     end = id;
     setGraphNodeStyle(id, 'end');
+    updateRandomBtn();
+  } else if (id !== start && id !== end) {
+    if (graphWallSet.has(id)) {
+      graphWallSet.delete(id);
+      setGraphNodeStyle(id, 'default');
+    } else {
+      graphWallSet.add(id);
+      setGraphNodeStyle(id, 'wall');
+    }
+    rebuildGraphGraph();
+    // Update edges connected to this node
+    graphEdgeMap?.forEach((line, key) => {
+      const [a, b] = key.split('-').map(Number);
+      if (a === id || b === id) {
+        const isWall = graphWallSet.has(a) || graphWallSet.has(b);
+        line.setAttribute('stroke',       isWall ? '#1e293b' : '#334155');
+        line.setAttribute('stroke-width', isWall ? '1'       : '1.5');
+        line.setAttribute('opacity',      isWall ? '0.15'    : '0.7');
+      }
+    });
   }
 }
 
@@ -416,6 +563,14 @@ function setGraphNodeStyle(id, state) {
     node.textEl.setAttribute('fill',           '#ffffff');
     node.textEl.setAttribute('font-size',      '13');
     node.textEl.textContent = '🏫';
+  } else if (state === 'wall') {
+    node.circleEl.setAttribute('fill',         '#1e293b');
+    node.circleEl.setAttribute('stroke',       '#ef4444');
+    node.circleEl.setAttribute('stroke-width', '2.5');
+    node.circleEl.setAttribute('opacity',      '0.9');
+    node.textEl.setAttribute('fill',           '#ef4444');
+    node.textEl.setAttribute('font-size',      '14');
+    node.textEl.textContent = '✕';
   } else {
     node.circleEl.setAttribute('fill',         '#1e293b');
     node.circleEl.setAttribute('stroke',       '#475569');
@@ -430,15 +585,18 @@ function setGraphNodeStyle(id, state) {
 function clearGraphVisualization() {
   if (!graphNodeMap) return;
   for (const [id] of graphNodeMap) {
-    if      (id === start) setGraphNodeStyle(id, 'start');
-    else if (id === end)   setGraphNodeStyle(id, 'end');
-    else                   setGraphNodeStyle(id, 'default');
+    if      (id === start)         setGraphNodeStyle(id, 'start');
+    else if (id === end)           setGraphNodeStyle(id, 'end');
+    else if (graphWallSet.has(id)) setGraphNodeStyle(id, 'wall');
+    else                           setGraphNodeStyle(id, 'default');
   }
   if (graphEdgeMap) {
-    graphEdgeMap.forEach(line => {
-      line.setAttribute('stroke',       '#334155');
-      line.setAttribute('stroke-width', '1.5');
-      line.setAttribute('opacity',      '0.7');
+    graphEdgeMap.forEach((line, key) => {
+      const [a, b] = key.split('-').map(Number);
+      const isWall = graphWallSet.has(a) || graphWallSet.has(b);
+      line.setAttribute('stroke',       isWall ? '#1e293b' : '#334155');
+      line.setAttribute('stroke-width', isWall ? '1'       : '1.5');
+      line.setAttribute('opacity',      isWall ? '0.15'    : '0.7');
     });
   }
 }
@@ -448,6 +606,7 @@ async function graphVisualize(visited, path, algoName) {
 
   for (const nodeId of visited) {
     if (nodeId === start || nodeId === end) continue;
+    if (graphWallSet.has(nodeId)) continue;
     const node = graphNodeMap.get(nodeId);
     if (!node?.circleEl) continue;
     node.circleEl.setAttribute('fill',         color);
@@ -455,7 +614,7 @@ async function graphVisualize(visited, path, algoName) {
     node.circleEl.setAttribute('stroke-width', '1.5');
     node.circleEl.setAttribute('opacity',      '0.55');
     node.textEl.setAttribute('fill',           '#0f172a');
-    await sleep(15);
+    await sleep(60);
   }
 
   if (path.length > 0 && start !== null) {
@@ -463,6 +622,7 @@ async function graphVisualize(visited, path, algoName) {
     for (let i = 0; i + 1 < fullPath.length; i++) {
       const a   = fullPath[i];
       const b   = fullPath[i + 1];
+      if (graphWallSet.has(a) || graphWallSet.has(b)) continue;
       const key = `${Math.min(a, b)}-${Math.max(a, b)}`;
       const ln  = graphEdgeMap?.get(key);
       if (ln) {
@@ -475,6 +635,7 @@ async function graphVisualize(visited, path, algoName) {
 
   for (const nodeId of path) {
     if (nodeId === start || nodeId === end) continue;
+    if (graphWallSet.has(nodeId)) continue;
     const node = graphNodeMap.get(nodeId);
     if (!node?.circleEl) continue;
     node.circleEl.setAttribute('fill',         color);
@@ -482,7 +643,7 @@ async function graphVisualize(visited, path, algoName) {
     node.circleEl.setAttribute('stroke-width', '2.5');
     node.circleEl.setAttribute('opacity',      '1');
     node.textEl.setAttribute('fill',           '#0f172a');
-    await sleep(30);
+    await sleep(120);
   }
 }
 
@@ -599,7 +760,11 @@ resetBtn.addEventListener('click', () => {
     clearGridVisualization();
   } else {
     start = end = null;
+    graphWallSet.forEach(id => setGraphNodeStyle(id, 'default'));
+    graphWallSet.clear();
+    rebuildGraphGraph();
     clearGraphVisualization();
+    updateRandomBtn();
   }
   resetStatsUI();
 });
@@ -609,6 +774,10 @@ randomBtn.addEventListener('click', () => {
     clearGridVisualization();
     resetStatsUI();
     randomWalls();
+  } else if (start && end) {
+    clearGraphVisualization();
+    resetStatsUI();
+    randomGraphWalls();
   } else {
     clearGraphVisualization();
     resetStatsUI();
@@ -774,6 +943,43 @@ viewStatsBtn.addEventListener('click', openStats);
 closeStatsBtn.addEventListener('click', closeStats);
 statsBackdrop.addEventListener('click', closeStats);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeStats(); });
+
+// ========== GRAPH NODE DRAG ==========
+
+document.addEventListener('mousemove', (e) => {
+  if (!dragActive || dragNodeId === null) return;
+  const pt = svgPoint(e.clientX, e.clientY);
+  moveNode(dragNodeId, pt.x, pt.y);
+});
+
+document.addEventListener('mouseup', () => {
+  if (dragNodeId === null) return;
+  const wasDragging = dragActive;
+  const id = dragNodeId;
+  cancelDrag();
+  if (wasDragging) {
+    suppressClick = true;
+    finalizeNodeDrag(id);
+  }
+});
+
+document.addEventListener('touchmove', (e) => {
+  if (!dragActive || dragNodeId === null) return;
+  e.preventDefault();
+  const pt = svgPoint(e.touches[0].clientX, e.touches[0].clientY);
+  moveNode(dragNodeId, pt.x, pt.y);
+}, { passive: false });
+
+document.addEventListener('touchend', () => {
+  if (dragNodeId === null) return;
+  const wasDragging = dragActive;
+  const id = dragNodeId;
+  cancelDrag();
+  if (wasDragging) {
+    suppressClick = true;
+    finalizeNodeDrag(id);
+  }
+});
 
 // ========== INIT ==========
 

@@ -15,7 +15,7 @@ export const keyOf = (n) => {
 };
 
 export const sleep = (ms) => {
-  const speedFactor = (100 - ANIMATION_SPEED) / 100 * 0.9 + 0.1;
+  const speedFactor = (100 - ANIMATION_SPEED) / 100;
   return new Promise((r) => setTimeout(r, ms * speedFactor));
 };
 

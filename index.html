@@ -82,8 +82,9 @@
         <!-- Graph container -->
         <div id="graphContainer" style="display:none; flex-direction:column; align-items:center; width:100%; min-height:600px; background:#0f172a; border-radius:6px; padding:10px 12px; box-sizing:border-box;">
           <p id="graphHint" style="color:#475569; font-size:11px; text-align:center; margin-bottom:6px; flex-shrink:0;">
-            Click a node to set <span style="color:#facc15;">Start</span>, click another to set <span style="color:#ef4444;">End</span>,
-            then run an algorithm &mdash; use <strong style="color:#a78bfa;">Random Graph</strong> to regenerate
+            Click a node to set <span style="color:#facc15;">Start</span>, then <span style="color:#ef4444;">End</span>.
+            After that, click any node to toggle a <span style="color:#ef4444;font-weight:600;">Wall</span> &mdash;
+            use <strong style="color:#a78bfa;">Random Walls</strong> once start &amp; end are set, or <strong style="color:#a78bfa;">Random Graph</strong> to regenerate
           </p>
           <svg id="graphSvg"
             viewBox="0 0 860 540"
@@ -98,7 +99,8 @@
         <p class="text-xs font-bold text-cyan-400 uppercase tracking-widest">Legend</p>
         <div class="legend-item"><span class="legend-dot" style="background:#facc15"></span><span>Start</span></div>
         <div class="legend-item"><span class="legend-dot" style="background:#ef4444"></span><span>End</span></div>
-        <div class="legend-item"><span class="legend-dot" style="background:#0f172a;border:1px solid #475569"></span><span>Wall</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#0f172a;border:1px solid #475569"></span><span>Wall (grid)</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#1e293b;border:2px solid #ef4444"></span><span>Blocked (graph)</span></div>
         <div class="legend-sep"></div>
         <div class="legend-item"><span class="legend-dot" style="background:#6366f1"></span><span>DFS</span></div>
         <div class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span><span>BFS</span></div>
