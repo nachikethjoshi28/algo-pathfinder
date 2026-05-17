@@ -37,6 +37,7 @@ export async function runBiDirBFS(graph, start, end) {
     path.reverse();
     cur = p2.get(keyOf(meet));
     while (cur && cur !== end) { path.push(cur); cur = p2.get(keyOf(cur)); }
+    if (cur === end) path.push(end);
   }
 
   return await animate(visitedNodes, path, 'bidir', start, end);

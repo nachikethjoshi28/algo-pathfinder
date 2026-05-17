@@ -54,9 +54,10 @@ let isGraphMode = false;
 // Grid mode
 const GRID_ROWS = 24;
 const GRID_COLS = 40;
-let gridNodeMap = null;
-let gridGraph   = null;
-let wallSet     = new Set();
+let gridNodeMap      = null;
+let gridGraph        = null;
+let gridHeuristicMap = null; // { x: col, y: row } for euclidean heuristic
+let wallSet          = new Set();
 
 // Graph mode
 const GRAPH_NUM_NODES = 80;
@@ -127,6 +128,11 @@ function buildGridMode() {
   }
 
   rebuildGridGraph();
+
+  // Build heuristic map: treat col as x, row as y so euclidean = diagonal distance
+  gridHeuristicMap = new Map();
+  for (const [id, node] of gridNodeMap) gridHeuristicMap.set(id, { x: node.c, y: node.r });
+
   updateRandomBtn();
 }
 
@@ -794,7 +800,7 @@ async function runAlgoVisual(algoName, algoFn, skipAnimation = false) {
     clearGridVisualization();
     const savedSpeed = parseInt(speedSlider.value);
     setAnimationSpeed(100);
-    const result = await algoFn(gridGraph, start, end, null);
+    const result = await algoFn(gridGraph, start, end, gridHeuristicMap);
     setAnimationSpeed(savedSpeed);
     updateStats(algoName, result, null);
     if (result?.visited && result?.path) {
@@ -811,7 +817,7 @@ async function runAlgoVisual(algoName, algoFn, skipAnimation = false) {
   clearGraphVisualization();
   const savedSpeed = parseInt(speedSlider.value);
   setAnimationSpeed(100);
-  const result = await algoFn(graphGraph, start, end, null);
+  const result = await algoFn(graphGraph, start, end, graphNodeMap);
   setAnimationSpeed(savedSpeed);
   const fullRoute = result?.path ? [start, ...result.path] : null;
   updateStats(algoName, result, fullRoute);

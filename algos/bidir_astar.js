@@ -1,4 +1,4 @@
-import { neighbors, keyOf, haversine, PriorityQueue, animate } from '../utils/utils.js';
+import { neighbors, keyOf, haversine, euclidean, PriorityQueue, animate } from '../utils/utils.js';
 
 export async function runBiDirAStar(graph, start, end, nodeMap) {
   const g1 = new Map(), g2 = new Map();
@@ -14,7 +14,7 @@ export async function runBiDirAStar(graph, start, end, nodeMap) {
     const n = nodeMap.get(nodeId);
     const e = nodeMap.get(end);
     if (!n || !e) return 0;
-    return haversine(n, e);
+    return n.x !== undefined ? euclidean(n, e) : haversine(n, e);
   };
 
   const heuristic2 = (nodeId) => {
@@ -22,7 +22,7 @@ export async function runBiDirAStar(graph, start, end, nodeMap) {
     const n = nodeMap.get(nodeId);
     const s = nodeMap.get(start);
     if (!n || !s) return 0;
-    return haversine(n, s);
+    return n.x !== undefined ? euclidean(n, s) : haversine(n, s);
   };
 
   const open1 = new PriorityQueue(nodeId => (g1.get(keyOf(nodeId)) || 0) + heuristic1(nodeId));

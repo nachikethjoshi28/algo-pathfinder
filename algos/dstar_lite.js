@@ -1,4 +1,4 @@
-import { neighbors, keyOf, reconstruct, animate, haversine, PriorityQueue } from '../utils/utils.js';
+import { neighbors, keyOf, reconstruct, animate, haversine, euclidean, PriorityQueue } from '../utils/utils.js';
 
 export async function runDStarLite(graph, start, end, nodeMap) {
   const g = new Map(), rhs = new Map(), parent = new Map(), visitedNodes = [];
@@ -10,7 +10,7 @@ export async function runDStarLite(graph, start, end, nodeMap) {
     const n = nodeMap.get(nodeId);
     const e = nodeMap.get(end);
     if (!n || !e) return 0;
-    return haversine(n, e);
+    return n.x !== undefined ? euclidean(n, e) : haversine(n, e);
   };
 
   const open = new PriorityQueue(nodeId => Math.min(g.get(keyOf(nodeId)) || Infinity, rhs.get(keyOf(nodeId)) || Infinity) + heuristic(nodeId));

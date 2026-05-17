@@ -19,7 +19,8 @@ export const sleep = (ms) => {
   return new Promise((r) => setTimeout(r, ms * speedFactor));
 };
 
-export const manhattan = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+export const manhattan  = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+export const euclidean  = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 
 /**
  * Haversine distance for geographic coordinates

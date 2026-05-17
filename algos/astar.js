@@ -1,4 +1,4 @@
-import { neighbors, keyOf, reconstruct, animate, haversine, PriorityQueue } from '../utils/utils.js';
+import { neighbors, keyOf, reconstruct, animate, haversine, euclidean, PriorityQueue } from '../utils/utils.js';
 
 export async function runAStar(graph, start, end, nodeMap) {
   const g = new Map();
@@ -14,7 +14,7 @@ export async function runAStar(graph, start, end, nodeMap) {
     const n = nodeMap.get(nodeId);
     const e = nodeMap.get(end);
     if (!n || !e) return 0;
-    return haversine(n, e);
+    return n.x !== undefined ? euclidean(n, e) : haversine(n, e);
   };
 
   const open = new PriorityQueue(nodeId => (g.get(keyOf(nodeId)) || 0) + heuristic(nodeId));

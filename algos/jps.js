@@ -1,4 +1,4 @@
-import { neighbors, keyOf, animate, haversine, PriorityQueue } from '../utils/utils.js';
+import { neighbors, keyOf, animate, haversine, euclidean, PriorityQueue } from '../utils/utils.js';
 
 export async function runJPS(graph, start, end, nodeMap) {
   // For street networks, JPS reduces to A* since the graph structure
@@ -17,7 +17,7 @@ export async function runJPS(graph, start, end, nodeMap) {
     const n = nodeMap.get(nodeId);
     const e = nodeMap.get(end);
     if (!n || !e) return 0;
-    return haversine(n, e);
+    return n.x !== undefined ? euclidean(n, e) : haversine(n, e);
   };
 
   const open = new PriorityQueue(nodeId => (g.get(keyOf(nodeId)) || 0) + heuristic(nodeId));
@@ -50,7 +50,7 @@ export async function runJPS(graph, start, end, nodeMap) {
     path.push(cur);
     cur = parent.get(keyOf(cur));
   }
-  if (cur === start) path.reverse();
+  if (cur !== start) path.length = 0; else path.reverse();
 
   await animate(visitedNodes, path, 'jps', start, end);
   return { visited: visitedNodes, path };
