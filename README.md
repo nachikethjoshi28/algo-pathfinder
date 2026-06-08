@@ -47,8 +47,5 @@ You can also open `index.html` directly, but some features work best when served
 - **About:** Use this application to learn and practice shortest-path algorithms — it's intended as an educational tool to help you gain practical knowledge.
 - **Contact:** nachikethjoshi28@gmail.com
 
-## License
-- MIT
-
 ## Credits
 - Algorithm implementations are located in the `algos/` directory.
