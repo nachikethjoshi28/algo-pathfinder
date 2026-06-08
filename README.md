@@ -1,13 +1,13 @@
 # Shortest Path Visualizer
 
-A small web project demonstrating common shortest-path and search algorithms with visualizations.
+An interactive web-based visualizer for common shortest-path and graph-search algorithms. This project is designed to help learners experiment with algorithms, inspect their behavior step-by-step, and gain practical intuition.
 
-Features
-- Visual implementations of BFS, DFS, Dijkstra, A*, Greedy Best-First, Bidirectional search, JPS, D* Lite
-- Interactive grid where you can set start, goal, and obstacles
-- Step-through visualization and animation controls
+**Highlights**
+- Visual implementations of BFS, DFS, Dijkstra, A*, Greedy Best-First, Bidirectional search, JPS, and D* Lite.
+- Interactive grid: set start/goal nodes, draw obstacles, and step through algorithm execution.
+- Configurable animation speed and step controls for hands-on learning.
 
-Included algorithms
+**Included algorithms**
 - See the `algos/` folder for implementations:
   - `astar.js`
   - `bfs.js`
@@ -19,16 +19,14 @@ Included algorithms
   - `greedy.js`
   - `jps.js`
 
-Quick start
-1. Install dependencies (if the project uses any):
+## Quick start
+1. Install dependencies (if any are required):
 
 ```bash
 npm install
 ```
 
-2. Open the app in a browser:
-
-Option A — simple file serve:
+2. Serve the project locally and open it in a browser:
 
 ```bash
 npx http-server . -o
@@ -36,16 +34,21 @@ npx http-server . -o
 npx serve .
 ```
 
-Option B — open `index.html` directly in your browser (some features may require a local server).
+You can also open `index.html` directly, but some features work best when served from a local server.
 
-Development
-- Edit source files in the `algos/` and `utils/` folders and refresh the page.
+## Development
+- Edit source files in `algos/` and `utils/`, then refresh the page to see changes.
 
-Contributing
-- Pull requests are welcome. Please open issues for bugs or feature requests.
+## Contributing
+- Pull requests and issues are welcome. Please describe bugs or feature requests clearly.
 
-License
+## Author & Contact
+- **Author:** Nachiketh Joshi
+- **About:** Use this application to learn and practice shortest-path algorithms — it's intended as an educational tool to help you gain practical knowledge.
+- **Contact:** nachikethjoshi28@gmail.com
+
+## License
 - MIT
 
-Credits
-- Algorithm implementations in `algos/`.
+## Credits
+- Algorithm implementations are located in the `algos/` directory.
