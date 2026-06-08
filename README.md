@@ -1,4 +1,4 @@
-# Shortest Path Visualizer
+# Algorithmic Path Visualizer
 
 An interactive web-based visualizer for common shortest-path and graph-search algorithms. This project is designed to help learners experiment with algorithms, inspect their behavior step-by-step, and gain practical intuition.
 
